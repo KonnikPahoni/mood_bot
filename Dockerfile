@@ -2,19 +2,14 @@ FROM python:3.10
 
 WORKDIR /
 
-COPY . /
+COPY requirements.txt /
 
 RUN pip3 install -r requirements.txt
 
-EXPOSE 80
-EXPOSE 443
+COPY . /
 
 ENV TZ "UTC"
 
 RUN echo "UTC" > /etc/timezone
 RUN echo "UTC" > /etc/localtime
 RUN dpkg-reconfigure -f noninteractive tzdata
-
-CMD ["main.py"]
-
-ENTRYPOINT ["python3"]

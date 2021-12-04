@@ -32,14 +32,13 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: app_image
+    image: mood_bot_image
     command: ./scripts/wait-for-it.sh db:5432 --
       sh -c "python manage.py migrate && python main.py"
     volumes:
       - ./var:/var
       - ./.env:/.env
       - ./mood_bot:/mood_bot
-      - ./scripts:/scripts
     depends_on:
       - db
       - redis
@@ -49,14 +48,13 @@ services:
     restart: unless-stopped
   celery:
     container_name: mood_bot.celery
-    image: app_image
+    image: mood_bot_image
     command: ./scripts/wait-for-it.sh db:5432 --
       sh -c "celery -A mood_bot.celery worker -l info"
     env_file:
       - .env
     volumes:
       - ./var/celery:/var/celery
-      - ./scripts:/scripts
     depends_on:
       - app
       - db
@@ -68,12 +66,11 @@ services:
     restart: unless-stopped
   celery-beat:
     container_name: mood_bot.celery_beat
-    image: app_image
+    image: mood_bot_image
     command: ./scripts/wait-for-it.sh db:5432 --
       sh -c "celery -A mood_bot.celery beat -l info -S django_celery_beat.schedulers:DatabaseScheduler"
     volumes:
       - ./var:/var
-      - ./scripts:/scripts
     env_file:
       - .env
     depends_on:
