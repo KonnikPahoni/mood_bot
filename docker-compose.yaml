@@ -1,0 +1,87 @@
+version: '3.9'
+
+services:
+  db:
+    container_name: mood_bot.db
+    image: postgres:13
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - ./var/postgresql:/var/lib/postgresql/data
+    ports:
+      - ${DB_PORT}:5432
+    env_file:
+      - .env
+    deploy:
+      restart_policy:
+        condition: on-failure
+    restart: unless-stopped
+  redis:
+    container_name: mood_bot.redis
+    image: "redis:alpine"
+    volumes:
+      - ./var/redis:/var/redis
+    deploy:
+      restart_policy:
+        condition: on-failure
+    restart: unless-stopped
+  app:
+    container_name: mood_bot.app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: app_image
+    command: ./scripts/wait-for-it.sh db:5432 --
+      sh -c "python manage.py migrate && python main.py"
+    volumes:
+      - ./var:/var
+      - ./.env:/.env
+      - ./mood_bot:/mood_bot
+      - ./scripts:/scripts
+    depends_on:
+      - db
+      - redis
+    deploy:
+      restart_policy:
+        condition: on-failure
+    restart: unless-stopped
+  celery:
+    container_name: mood_bot.celery
+    image: app_image
+    command: ./scripts/wait-for-it.sh db:5432 --
+      sh -c "celery -A mood_bot.celery worker -l info"
+    env_file:
+      - .env
+    volumes:
+      - ./var/celery:/var/celery
+      - ./scripts:/scripts
+    depends_on:
+      - app
+      - db
+    links:
+      - redis
+    deploy:
+      restart_policy:
+        condition: on-failure
+    restart: unless-stopped
+  celery-beat:
+    container_name: mood_bot.celery_beat
+    image: app_image
+    command: ./scripts/wait-for-it.sh db:5432 --
+      sh -c "celery -A mood_bot.celery beat -l info -S django_celery_beat.schedulers:DatabaseScheduler"
+    volumes:
+      - ./var:/var
+      - ./scripts:/scripts
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+      - app
+      - celery
+    deploy:
+      restart_policy:
+        condition: on-failure
+    restart: unless-stopped
