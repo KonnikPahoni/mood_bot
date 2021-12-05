@@ -7,7 +7,7 @@ from mood_bot.constants import MOOD_QUESTION_TEXT
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "mood_bot.settings")
 # set the default Django settings module for the 'celery' program.
-from main import updater, moods_markup
+from main import updater, get_moods_markup
 
 celery = Celery("mood_bot")
 
@@ -21,7 +21,7 @@ def setup_periodic_tasks(sender, **kwargs):
 def ask_about_mood(user_id):
     try:
         updater.bot.send_message(
-            chat_id=user_id, text=MOOD_QUESTION_TEXT, reply_markup=moods_markup
+            chat_id=user_id, text=MOOD_QUESTION_TEXT, reply_markup=get_moods_markup()
         )
     except (telegram.error.Unauthorized, telegram.error.BadRequest) as e:
         logging.error(f"Error sending daily task to {str(user_id)}: {str(e)}")

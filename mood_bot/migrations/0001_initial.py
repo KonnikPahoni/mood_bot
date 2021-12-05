@@ -8,29 +8,42 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='TgUser',
+            name="TgUser",
             fields=[
-                ('id', models.IntegerField(db_index=True, primary_key=True, serialize=False)),
-                ('first_name', models.CharField(max_length=255)),
-                ('last_name', models.CharField(blank=True, max_length=255, null=True)),
-                ('username', models.CharField(blank=True, max_length=255, null=True)),
-                ('language_code', models.CharField(blank=True, max_length=255, null=True)),
-                ('created', models.DateTimeField(auto_now_add=True)),
-                ('ask_time', models.TimeField(blank=True, null=True)),
+                (
+                    "id",
+                    models.IntegerField(
+                        db_index=True, primary_key=True, serialize=False
+                    ),
+                ),
+                ("first_name", models.CharField(max_length=255)),
+                ("last_name", models.CharField(blank=True, max_length=255, null=True)),
+                ("username", models.CharField(blank=True, max_length=255, null=True)),
+                (
+                    "language_code",
+                    models.CharField(blank=True, max_length=255, null=True),
+                ),
+                ("created", models.DateTimeField(auto_now_add=True)),
+                ("ask_time", models.TimeField(blank=True, null=True)),
             ],
         ),
         migrations.CreateModel(
-            name='Mood',
+            name="Mood",
             fields=[
-                ('id', models.IntegerField(primary_key=True, serialize=False)),
-                ('value', models.SmallIntegerField()),
-                ('added', models.DateTimeField(auto_now_add=True)),
-                ('tg_user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='mood_bot.tguser')),
+                ("id", models.IntegerField(primary_key=True, serialize=False)),
+                ("value", models.SmallIntegerField()),
+                ("added", models.DateTimeField(auto_now_add=True)),
+                (
+                    "tg_user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="mood_bot.tguser",
+                    ),
+                ),
             ],
         ),
     ]

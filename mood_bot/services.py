@@ -1,6 +1,8 @@
 import datetime
 import logging
 from django_celery_beat.models import PeriodicTask, CrontabSchedule
+
+from mood_bot.exceptions import CrontabNotDefined
 from mood_bot.models import TgUser, Mood
 
 
@@ -29,7 +31,6 @@ def set_ask_time_service(user_id, ask_time):
     tg_user = TgUser.objects.get(id=user_id)
     time_object = datetime.datetime.strptime(ask_time, "%H:%M").time()
     tg_user.ask_time = time_object
-    tg_user.save()
 
     cron = CrontabSchedule(hour=time_object.hour, minute=time_object.minute)
     cron.save()
@@ -44,10 +45,55 @@ def set_ask_time_service(user_id, ask_time):
             args=f"[{str(tg_user.id)}]",
             crontab=cron,
         )
-
     task.save()
 
+    tg_user.crontab = cron
+    tg_user.task = task
+    tg_user.save()
 
-def save_mood_service(user_id, mood):
+
+def save_mood_service(user_id, callback_data):
     logging.info(f"Saving mood for user {user_id}")
-    Mood.objects.create(tg_user_id=user_id, value=mood)
+
+    value, date_string = callback_data.split("_")
+    date = datetime.datetime.strptime(date_string, "%Y-%m-%d")
+
+    Mood.objects.create(tg_user_id=user_id, value=value, date=date)
+
+    return value, date
+
+
+def off_messages_service(user_id):
+    tg_user = TgUser.objects.get(id=user_id)
+
+    if tg_user.task is not None:
+        tg_user.crontab = tg_user.task.crontab
+        tg_user.task.delete()
+        tg_user.task = None
+        tg_user.save()
+
+
+def on_messages_service(user_id):
+    tg_user = TgUser.objects.get(id=user_id)
+
+    try:
+        task = PeriodicTask.objects.get(name=str(tg_user.id))
+
+        if tg_user.crontab is None:
+            tg_user.crontab = task.crontab
+
+    except PeriodicTask.DoesNotExist:
+
+        if tg_user.crontab is None:
+            raise CrontabNotDefined
+
+        task = PeriodicTask(
+            name=str(tg_user.id),
+            task="mood_bot.celery.ask_about_mood",
+            args=f"[{str(tg_user.id)}]",
+            crontab=tg_user.crontab,
+        )
+        task.save()
+
+    tg_user.task = task
+    tg_user.save()

@@ -9,10 +9,25 @@ class TgUser(models.Model):
     language_code = models.CharField(max_length=255, null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)
     ask_time = models.TimeField(null=True, blank=True)
+    task = models.ForeignKey(
+        "django_celery_beat.PeriodicTask",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="user",
+    )
+    crontab = models.ForeignKey(
+        "django_celery_beat.CrontabSchedule",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="user",
+    )
 
 
 class Mood(models.Model):
     id = models.AutoField(primary_key=True)
     tg_user = models.ForeignKey("TgUser", on_delete=models.CASCADE)
-    value = models.SmallIntegerField()
+    value = models.DecimalField(max_digits=3, decimal_places=1)
+    date = models.DateField(null=True, blank=True)
     added = models.DateTimeField(auto_now_add=True)
