@@ -15,7 +15,7 @@ cp .env.dist .env
 ### Build and run containers
 
 ```
-docker-compose build && docker-compose up
+docker-compose build && docker-compose up -d
 ```
 
 ## App updating
