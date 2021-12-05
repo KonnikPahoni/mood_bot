@@ -12,7 +12,7 @@ class TgUser(models.Model):
 
 
 class Mood(models.Model):
-    id = models.IntegerField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     tg_user = models.ForeignKey("TgUser", on_delete=models.CASCADE)
     value = models.SmallIntegerField()
     added = models.DateTimeField(auto_now_add=True)

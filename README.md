@@ -1,6 +1,6 @@
 # Mood bot
 
-This bot is created to help monitor individual mood. Lean and mean
+This bot is created to help monitor your mood. Lean and mean.
 
 ## Deployment
 

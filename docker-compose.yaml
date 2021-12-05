@@ -29,6 +29,8 @@ services:
     restart: unless-stopped
   app:
     container_name: mood_bot.app
+    environment:
+      DJANGO_SETTINGS_MODULE: mood_bot.settings
     build:
       context: .
       dockerfile: Dockerfile
