@@ -1,3 +1,5 @@
+import logging
+
 from django.core.management.base import BaseCommand
 from main import updater, remove_keyboard_markup
 from mood_bot.models import TgUser
@@ -22,25 +24,30 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
 
         for tg_user in TgUser.objects.all():
-            updater.bot.send_message(
-                chat_id=tg_user.id,
-                text=self.UPDATE_TEXT_1,
-                reply_markup=remove_keyboard_markup,
-            )
+            try:
+                updater.bot.send_message(
+                    chat_id=tg_user.id,
+                    text=self.UPDATE_TEXT_1,
+                    reply_markup=remove_keyboard_markup,
+                )
 
-            _plot = plot_service(tg_user.id)
-            updater.bot.send_photo(
-                tg_user.id,
-                _plot,
-                reply_markup=remove_keyboard_markup,
-                caption="This one includes all your mood records in the database. Use /plot command to "
-                "see only records for the last 180 days.",
-            )
+                _plot = plot_service(tg_user.id)
+                updater.bot.send_photo(
+                    tg_user.id,
+                    _plot,
+                    reply_markup=remove_keyboard_markup,
+                    caption="This one includes all your mood records in the database. Use /plot command to "
+                    "see only records for the last 180 days.",
+                )
 
-            updater.bot.send_message(
-                chat_id=tg_user.id,
-                text=self.UPDATE_TEXT_2,
-                reply_markup=remove_keyboard_markup,
-            )
+                updater.bot.send_message(
+                    chat_id=tg_user.id,
+                    text=self.UPDATE_TEXT_2,
+                    reply_markup=remove_keyboard_markup,
+                )
+            except Exception as e:
+                logging.error(
+                    f"Could not send a message for user {tg_user.id}: {str(e)}"
+                )
 
         self.stdout.write("Update sent out.")
