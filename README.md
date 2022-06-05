@@ -39,7 +39,10 @@ docker container exec -it mood_bot.celery celery -A celery purge -f
 ```
 
 ## Telegram bot commands
+
 start - Set the time me when I should ask you about your mood daily
 mood - Report your mood during the day additionally
 off - Turn off crontab
 on - Turn on crontab
+plot - Plot mood for the last 180 days
+plot_all - Plot mood for all records

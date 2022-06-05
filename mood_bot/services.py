@@ -1,7 +1,8 @@
 import datetime
 import logging
 from django_celery_beat.models import PeriodicTask, CrontabSchedule
-
+import matplotlib.pyplot as plt
+import io
 from mood_bot.exceptions import CrontabNotDefined
 from mood_bot.models import TgUser, Mood
 
@@ -97,3 +98,32 @@ def on_messages_service(user_id):
 
     tg_user.task = task
     tg_user.save()
+
+
+def plot_service(user_id, date_start=None, date_end=None):
+    tg_user = TgUser.objects.get(id=user_id)
+
+    mood_records_filterset = Mood.objects.filter(tg_user=tg_user)
+
+    if date_start is not None:
+        mood_records_filterset = mood_records_filterset.filter(date__gte=date_start)
+
+    if date_end is not None:
+        mood_records_filterset = mood_records_filterset.filter(date__lte=date_end)
+
+    mood_records = list(mood_records_filterset.values_list("date", "value"))
+
+    dates = list(map(lambda elem: elem[0], mood_records))
+    moods = list(map(lambda elem: elem[1], mood_records))
+
+    plt.plot(dates, moods)
+
+    plt.xlabel("Time")
+    plt.ylabel("Mood")
+
+    fig = plt.gcf()
+    buf = io.BytesIO()
+    fig.savefig(buf)
+    buf.seek(0)
+
+    return buf

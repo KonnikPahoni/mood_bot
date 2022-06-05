@@ -1,3 +1,5 @@
+from io import BytesIO
+
 import django
 
 django.setup()
@@ -17,13 +19,14 @@ from telegram.ext import (
     Filters,
     CallbackQueryHandler,
 )
-
+from PIL import Image
 from mood_bot.services import (
     setup_user_service,
     set_ask_time_service,
     save_mood_service,
     off_messages_service,
     on_messages_service,
+    plot_service,
 )
 from mood_bot.settings import TELEGRAM_TOKEN
 
@@ -165,6 +168,31 @@ def callback(update: Update, context: CallbackContext):
     )
 
 
+def plot(update: Update, context: CallbackContext):
+    date_start = datetime.datetime.now() - datetime.timedelta(days=180)
+    _plot = plot_service(update.message.from_user.id, date_start, None)
+
+    context.bot.send_photo(
+        update.effective_chat.id,
+        _plot,
+        reply_markup=remove_keyboard_markup,
+        reply_to_message_id=update.message.message_id,
+        caption="Here is your graph! Only mood records for the last 180 days are shown. Use the /plot_all command to see all records.",
+    )
+
+
+def plot_all(update: Update, context: CallbackContext):
+    _plot = plot_service(update.message.from_user.id)
+
+    context.bot.send_photo(
+        update.effective_chat.id,
+        _plot,
+        reply_markup=remove_keyboard_markup,
+        reply_to_message_id=update.message.message_id,
+        caption="Here is your graph! It includes all your mood records in the database. Use /plot command to see only records for the last 180 days.",
+    )
+
+
 updater = Updater(TELEGRAM_TOKEN)
 dispatcher = updater.dispatcher
 
@@ -189,12 +217,16 @@ def main() -> None:
     on_handler = CommandHandler("on", on)
     off_handler = CommandHandler("off", off)
     button_handler = CallbackQueryHandler(callback)
+    plot_handler = CommandHandler("plot", plot)
+    plot_all_handler = CommandHandler("plot_all", plot_all)
 
     dispatcher.add_handler(setup_handler)
     dispatcher.add_handler(mood_handler)
     dispatcher.add_handler(on_handler)
     dispatcher.add_handler(off_handler)
     dispatcher.add_handler(button_handler)
+    dispatcher.add_handler(plot_handler)
+    dispatcher.add_handler(plot_all_handler)
 
     # Start the Bot
     updater.start_polling()
