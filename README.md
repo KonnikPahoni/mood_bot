@@ -1,4 +1,4 @@
-# Mood bot
+# Mood bot (v1.1)
 
 This bot is created to help monitor your mood. Lean and mean.
 
