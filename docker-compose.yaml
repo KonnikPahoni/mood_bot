@@ -16,6 +16,8 @@ services:
       restart_policy:
         condition: on-failure
     restart: unless-stopped
+    ports:
+      - "5432:5432"
   redis:
     container_name: mood_bot.redis
     image: "redis:alpine"
@@ -33,8 +35,7 @@ services:
       context: .
       dockerfile: Dockerfile
     image: mood_bot_image
-    command: ./scripts/wait-for-it.sh db:5432 --
-      sh -c "python manage.py migrate && python main.py"
+    command: sh -c "python manage.py migrate && python main.py"
     volumes:
       - ./var:/var
       - ./.env:/.env
@@ -49,8 +50,7 @@ services:
   celery:
     container_name: mood_bot.celery
     image: mood_bot_image
-    command: ./scripts/wait-for-it.sh db:5432 --
-      sh -c "celery -A mood_bot.celery worker -l info"
+    command: celery -A mood_bot.celery worker -l info
     env_file:
       - .env
     volumes:
@@ -67,8 +67,7 @@ services:
   celery-beat:
     container_name: mood_bot.celery_beat
     image: mood_bot_image
-    command: ./scripts/wait-for-it.sh db:5432 --
-      sh -c "celery -A mood_bot.celery beat -l info -S django_celery_beat.schedulers:DatabaseScheduler"
+    command: celery -A mood_bot.celery beat -l info -S django_celery_beat.schedulers:DatabaseScheduler
     volumes:
       - ./var:/var
     env_file:
