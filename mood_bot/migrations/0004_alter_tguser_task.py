@@ -5,7 +5,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("django_celery_beat", "0015_edit_solarschedule_events_choices"),
         ("mood_bot", "0003_auto_20211205_1608"),

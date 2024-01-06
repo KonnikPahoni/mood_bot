@@ -84,7 +84,6 @@ def on_messages_service(user_id):
             tg_user.crontab = task.crontab
 
     except PeriodicTask.DoesNotExist:
-
         if tg_user.crontab is None:
             raise CrontabNotDefined
 
@@ -115,6 +114,8 @@ def plot_service(user_id, date_start=None, date_end=None):
 
     dates = list(map(lambda elem: elem[0], mood_records))
     moods = list(map(lambda elem: elem[1], mood_records))
+
+    plt.clf()
 
     plt.plot(dates, moods)
 

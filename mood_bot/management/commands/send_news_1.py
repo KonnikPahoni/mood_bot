@@ -22,7 +22,6 @@ class Command(BaseCommand):
     )
 
     def handle(self, *args, **options):
-
         for tg_user in TgUser.objects.all():
             try:
                 updater.bot.send_message(
